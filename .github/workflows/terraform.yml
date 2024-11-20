@@ -37,11 +37,13 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.6.3
+    
 
       - name: Terraform init
+        working-directory: ./terraform
         id: init
         #run: terraform init -backend-config="backend=BUCKET_TF_STATE"
-        
+
         run: terraform init -chdir=./terraform \
                             -backend-config="bucket=${BUCKET_TF_STATE}" \
                             -backend-config="key=terraform.tfstate" \
