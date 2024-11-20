@@ -44,10 +44,13 @@ jobs:
         id: init
         #run: terraform init -backend-config="backend=BUCKET_TF_STATE"
 
-        run: terraform init -chdir=./terraform \
-                            -backend-config="bucket=${BUCKET_TF_STATE}" \
-                            -backend-config="key=terraform.tfstate" \
-                            -backend-config="region=${AWS_REGION}"
+        run: |
+          |
+          terraform init \
+            -backend-config="bucket=${{ secrets.BUCKET_TF_STATE }}" \
+            -backend-config="key=terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -reconfigure
 
       - name: Terraform fmt
         id: fmt 
