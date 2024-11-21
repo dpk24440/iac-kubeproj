@@ -79,15 +79,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       
-      - name: Get kubeconfig file  
-        id: getconfig  
-        if: steps.apple.conclusion == 'success' 
-        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }} 
+      - name: Save a variable
+        run: echo "MY_OUTPUT=success" >> $GITHUB_ENV
         
-      - name: Install ingress controller  
-        if: steps.apple.conclusion == 'success' && steps.getconfig.conclusion == 'success' 
-        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
-        
+      
+      - name: Get kubeconfig file
+        id: getconfig
+        if: steps.apple.conclusion == 'success'
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+          echo "KUBECONFIG_UPDATED=true" >> $GITHUB_ENV
+      
+      - name: Install ingress controller
+        if: env.KUBECONFIG_UPDATED == 'true'
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
+      
       #- name: Get kubeconfig file 
       #  id: getconfig 
       #  if: steps.apple.outcome == 'success'
