@@ -72,28 +72,27 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false -parallelism=1 planfile 
 
-      - name: Configure aws credentials 
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       
-      - name: Save a variable
-        run: echo "MY_OUTPUT=success" >> $GITHUB_ENV
-        
+      - name: Verify AWS credentials
+        run: |
+          aws sts get-caller-identity
+          echo "AWS_CREDENTIALS_CONFIGURED=true" >> $GITHUB_ENV
       
-      - name: Get kubeconfig file
+      - name: Get kubeconfig
         id: getconfig
-        if: steps.apple.conclusion == 'success'
-        run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
-          echo "KUBECONFIG_UPDATED=true" >> $GITHUB_ENV
+        if: env.AWS_CREDENTIALS_CONFIGURED == 'true'
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
       
-      - name: Install ingress controller
-        if: env.KUBECONFIG_UPDATED == 'true'
-        run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
+      - name: Install ingrees controller 
+        if: steps.apple.outcome == 'success' && steps.getconfig.outcome == 'success'
+        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
+        
       
       #- name: Get kubeconfig file 
       #  id: getconfig 
