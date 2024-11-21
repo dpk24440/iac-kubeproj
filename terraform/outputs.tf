@@ -13,7 +13,11 @@ output "region" {
   value       = var.region
 }
 
+<<<<<<< HEAD
 ###
+=======
+##
+>>>>>>> stage
 output "cluster_security_group_id" {
   description = "Security group ID for the Amazon Web Service EKS Cluster "
   value       = module.eks.cluster_security_group_id
