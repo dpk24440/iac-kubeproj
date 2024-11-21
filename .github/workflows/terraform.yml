@@ -80,23 +80,18 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Verify AWS credentials
-        run: |
-          aws sts get-caller-identity
-          echo "AWS_CREDENTIALS_CONFIGURED=true" >> $GITHUB_ENV
-      
+        run: aws sts get-caller-identity
+
       - name: Get kubeconfig
         id: getconfig
-        if: env.AWS_CREDENTIALS_CONFIGURED == 'true'
-        run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
-          echo "Kubeconfig retrieved successfully."
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
 
       - name: Install ingress controller
         id: install-ingress
-        if: steps.apple.conclusion == 'success' && steps.getconfig.conclusion == 'success'
+        if: steps.apply.conclusion == 'success' && steps.getconfig.conclusion == 'success'
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
-          echo "Ingress controller installed."
+
       
       #- name: Get kubeconfig file 
       #  id: getconfig 
